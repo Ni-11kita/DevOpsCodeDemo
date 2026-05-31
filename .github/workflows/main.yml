@@ -5,6 +5,9 @@ on:
     branches:
       - master
   workflow_dispatch:
+env:
+  DOCKERHUB_USERNAME: nikitawalave
+  image_name: myjavaapp 
 jobs:
   Test_java_code:
     runs-on: ubuntu-latest
@@ -16,7 +19,20 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+      - name: set up  docker
+        uses: docker/setup-buildx-action@v4
       - name: run tests with mvn
         run: mvn test
       - name: build code
         run: mvn package
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          push: true
+          tags: ${{ env.DOCKERHUB_USERNAME }}/${{ env.image_name }}:latest
+  
